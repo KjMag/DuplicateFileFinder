@@ -135,6 +135,21 @@ namespace DuplicateFileFinder
             else
                 FileOccuranceDictionary[fname].Add(file);
         }
+
+        public override string ToString()
+        {
+            string res = $"List of duplicate filenames within the directory:\n{RootPath}\n\n";
+            res += "*************************************************************\n";
+            foreach(var fileOccurance in DuplicateFilesDictionary)
+            {
+                res += "=============================================================\n";
+                res += fileOccurance.Key + " can be found in the following locations:\n";
+                foreach (string dir in fileOccurance.Value)
+                    res += dir + "\n";
+                res += "=============================================================\n";
+            }
+            return res;
+        }
     }
 
     public class Program
