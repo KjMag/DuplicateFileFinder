@@ -34,6 +34,11 @@ namespace DuplicateFileFinder
             GenerateFileDictionaries();
         }
 
+        public void WriteToFile(string outputPath)
+        {
+
+        }
+
         private void GenerateDuplicateFilesDictionary()
         {
             var findDuplicates = from file in FileOccuranceDictionary where file.Value.Count > 1 select file;
@@ -136,27 +141,52 @@ namespace DuplicateFileFinder
                 FileOccuranceDictionary[fname].Add(file);
         }
 
-        public override string ToString()
+        private List<string> StringifyDuplicateFilesDictionary()
+            // List used instead of a single string in order to enable file writers optimize
+            // writing process as well as to avoid multiple reallocations due to changing string
+            // size
         {
-            string res = $"List of duplicate filenames within the directory:\n{RootPath}\n\n";
-            res += "*************************************************************\n";
-            foreach(var fileOccurance in DuplicateFilesDictionary)
+            List<string> res = new List<string>{ $"List of duplicate filenames within the directory:\n{RootPath}\n\n" };
+            res.Add("*************************************************************\n");
+            int i = 1;
+            foreach (var fileOccurance in DuplicateFilesDictionary)
             {
-                res += "=============================================================\n";
-                res += fileOccurance.Key + " can be found in the following locations:\n";
+                res .Add(String.Format("{0}\n", i));
+                res .Add( "=============================================================\n");
+                res .Add( "\"" +  fileOccurance.Key + "\"" + " can be found in the following locations:\n");
+                int j = 1;
                 foreach (string dir in fileOccurance.Value)
-                    res += dir + "\n";
-                res += "=============================================================\n";
+                {
+                    res.Add(String.Format("{0}. " + dir + "\n", j));
+                    ++j;
+                }
+                res .Add( "=============================================================\n");
+                ++i;
             }
+            return res;
+        }
+
+        public override string ToString()
+            // beware of using it as this may generate huge string ;)
+        {
+            string res = string.Empty;
+            foreach (string str in StringifyDuplicateFilesDictionary())
+                res += str;
             return res;
         }
     }
 
     public class Program
     {
-        public void Main()
+        public static void Main()
         {
-
+            Console.WriteLine("Please provide the root path for duplicate search:");
+            string path = Console.ReadLine();
+            if (string.IsNullOrEmpty(path))
+                return;
+            DuplicateFileNameFinder finder = new DuplicateFileNameFinder(path);
+            Console.Write(finder.ToString());
+            Console.ReadLine();
         }
     }
 }
