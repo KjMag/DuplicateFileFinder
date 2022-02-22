@@ -36,7 +36,12 @@ namespace DuplicateFileFinder
 
         public void WriteToFile(string outputPath)
         {
-
+            using (StreamWriter sw = new StreamWriter(outputPath))
+            {
+                foreach(string str in StringifyDuplicateFilesDictionary())
+                    sw.Write(str);
+                sw.Close();
+            }
         }
 
         private void GenerateDuplicateFilesDictionary()
@@ -178,14 +183,62 @@ namespace DuplicateFileFinder
 
     public class Program
     {
+        private static void WriteResultsToConsole(DuplicateFileNameFinder finder)
+        {
+            Console.Write(finder.ToString());
+        }
+        private static void WriteResultsToFile(DuplicateFileNameFinder finder)
+        {
+            Console.WriteLine();
+            Console.Write("Specify the output file\n" +
+                          "(if the file doesn't exist, it will be created;\n" +
+                          "if the file does exist, its contents will be overwritten):\n");
+            string outputFile = null;
+            bool firstIteration = true;
+            while(string.IsNullOrEmpty(outputFile))
+            {
+                if (!firstIteration)
+                    Console.WriteLine("Empty filename is not allowed. Please try again.");
+                outputFile = Console.ReadLine();
+                firstIteration = false;
+            }
+            finder.WriteToFile(outputFile);
+        }
         public static void Main()
         {
             Console.WriteLine("Please provide the root path for duplicate search:");
             string path = Console.ReadLine();
             if (string.IsNullOrEmpty(path))
                 return;
+
+            char choice = '0';
+            HashSet<char> validChoices = new HashSet<char> { 'c', 'f', 'b' };
+            Console.WriteLine("Choose whether the results should be:");
+            Console.WriteLine("1. Printed in Console (press [C]):");
+            Console.WriteLine("2. Written to file (press [F]):");
+            Console.WriteLine("3. Both (press [B]):");
+
             DuplicateFileNameFinder finder = new DuplicateFileNameFinder(path);
-            Console.Write(finder.ToString());
+            while (!validChoices.Contains(choice))
+            {
+                choice = Console.ReadKey().KeyChar;
+                Console.WriteLine();
+            }
+            switch (choice)
+            {
+                case 'c':
+                    WriteResultsToConsole(finder);
+                    break;
+                case 'f':
+                    WriteResultsToFile(finder);
+                    break;
+                case 'b':
+                    WriteResultsToConsole(finder);
+                    WriteResultsToFile(finder);
+                    break;
+            }
+            Console.WriteLine("\nDONE!");
+            
             Console.ReadLine();
         }
     }
